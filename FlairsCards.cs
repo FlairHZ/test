@@ -14,6 +14,8 @@ using UnityEngine.Profiling;
 using WillsWackyManagers.Utils;
 using Jotunn.Utils;
 
+// If you are one of the poor souls looking at my code I am sorry for the horrors you are about to witness
+
 namespace FlairsCards
 {
     [BepInDependency("com.willis.rounds.unbound", BepInDependency.DependencyFlags.HardDependency)]
@@ -33,7 +35,7 @@ namespace FlairsCards
         public const string Version = "0.2.0";
         public const string ModInitials = "FC";
         public const string CursedModInitials = "FC Curse";
-        public static FlairsCards? Instance { get; private set; }
+        public static FlairsCards Instance { get; private set; }
 
         private static readonly AssetBundle Bundle = Jotunn.Utils.AssetUtils.LoadAssetBundleFromResources("cardbundle", typeof(FlairsCards).Assembly);
 

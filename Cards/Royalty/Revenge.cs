@@ -18,7 +18,7 @@ namespace FlairsCards.Cards
         public override void SetupCard(CardInfo cardInfo, Gun gun, ApplyCardStats cardStats, CharacterStatModifiers statModifiers, Block block)
         {
             cardInfo.allowMultiple = false;
-            gun.reloadTimeAdd = -1f;
+            gun.reloadTimeAdd = -0.5f;
             FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been setup.");
         }
         public override void OnAddCard(Player player, Gun gun, GunAmmo gunAmmo, CharacterData data, HealthHandler health, Gravity gravity, Block block, CharacterStatModifiers characterStats)
@@ -56,8 +56,8 @@ namespace FlairsCards.Cards
                 {
                     positive = true,
                     stat = "Reload Speed",
-                    amount = "-1s",
-                    simepleAmount = CardInfoStat.SimpleAmount.Some
+                    amount = "-0.5s",
+                    simepleAmount = CardInfoStat.SimpleAmount.lower
                 },
             };
         }

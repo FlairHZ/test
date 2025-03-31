@@ -26,17 +26,10 @@ namespace FlairsCards.Cards
                 new CardInfoStat()
                 {
                     positive = true,                    
-                    stat = "Movement speed per block",
+                    stat = "Speed per block",
                     amount = "+7.5%",
                     simepleAmount = CardInfoStat.SimpleAmount.aLittleBitOf,
                 },
-                new CardInfoStat()
-                {
-                    positive = false,
-                    stat = "Block cooldown",
-                    amount = "+0.25s",
-                    simepleAmount = CardInfoStat.SimpleAmount.aLittleBitOf,
-                }
             }
         };
         public override void SetupCard(CardInfo cardInfo, Gun gun, ApplyCardStats cardStats, CharacterStatModifiers statModifiers, Block block)
@@ -46,6 +39,7 @@ namespace FlairsCards.Cards
         }
     }
 }
+// Aware of how to fix, will do at a later date
 public class SpeedOnBlockEffect : CardEffect
 {
     public override void OnBlockRecharge()

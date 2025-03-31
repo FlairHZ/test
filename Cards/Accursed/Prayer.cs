@@ -40,7 +40,7 @@ namespace FlairsCards.Cards
         }
         protected override string GetDescription()
         {
-            return "Consume all curses you currently have, gain buffs depending on the amount destroyed";
+            return "Consume all curses you currently have, gain buffs depending on the amount consumed";
         }
         protected override GameObject GetCardArt()
         {
