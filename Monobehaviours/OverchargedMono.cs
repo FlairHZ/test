@@ -21,8 +21,9 @@ namespace FlairsCards.MonoBehaviours
             timer += Time.deltaTime;
             if (timer > waitTime)
             {
-                block.cdMultiplier = (float)((0.9375 * player.data.HealthPercentage) + 0.0625);
+                block.cdMultiplier = (float)((0.9375 * Mathf.Max(player.data.HealthPercentage, 0.2f)) + 0.0625);
                 player.data.stats.GetAdditionalData().overCharged = true; // Blanket solution, make it actually better later
+                timer = timer - waitTime;
             }
         }
     }

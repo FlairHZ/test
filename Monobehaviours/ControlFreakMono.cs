@@ -48,6 +48,7 @@ namespace FlairsCards.MonoBehaviours
                 {
                     block.RPCA_DoBlock(true);
                 }
+                timer = timer - waitTime;
             }
         }
     }

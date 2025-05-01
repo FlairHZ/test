@@ -39,10 +39,9 @@ namespace FlairsCards.Cards
         }
     }
 }
-// Aware of how to fix, will do at a later date
 public class SpeedOnBlockEffect : CardEffect
 {
-    public override void OnBlockRecharge()
+    public override void OnBlock(BlockTrigger.BlockTriggerType blockTriggerType)
     {
         StatManager.Apply(player, new StatChanges
         {
