@@ -1,56 +1,36 @@
 ﻿using ClassesManagerReborn.Util;
+using FlairsCards.Cards;
 using FlairsCards.MonoBehaviours;
 using FlairsCards.Utilities;
+using FC.Extensions;
+using ModsPlus;
+using Photon.Pun;
+using Photon.Realtime;
 using RarityLib.Utils;
+using System.Collections;
 using UnboundLib;
 using UnboundLib.Cards;
+using UnboundLib.GameModes;
 using UnityEngine;
 
 namespace FlairsCards.Cards
 {
-    class Coinflip : CustomCard
+    public class Coinflip : CustomEffectCard<CoinflipEffect>
     {
         internal static CardInfo Card = null;
-
         public override void Callback()
         {
             gameObject.GetOrAddComponent<ClassNameMono>().className = GamblerClass.name;
         }
-        public override void SetupCard(CardInfo cardInfo, Gun gun, ApplyCardStats cardStats, CharacterStatModifiers statModifiers, Block block)
+        public override CardDetails Details => new CardDetails
         {
-            cardInfo.allowMultiple = false;
-            gun.reloadTimeAdd = -0.5f;
-            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been setup.");
-        }
-        public override void OnAddCard(Player player, Gun gun, GunAmmo gunAmmo, CharacterData data, HealthHandler health, Gravity gravity, Block block, CharacterStatModifiers characterStats)
-        {
-            player.gameObject.GetOrAddComponent<CoinflipMono>();
-            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been added to player {player.playerID}.");
-        }
-        public override void OnRemoveCard(Player player, Gun gun, GunAmmo gunAmmo, CharacterData data, HealthHandler health, Gravity gravity, Block block, CharacterStatModifiers characterStats)
-        {
-            Destroy(player.gameObject.GetOrAddComponent<CoinflipMono>());
-            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been removed to player {player.playerID}.");
-        }
-        protected override string GetTitle()
-        {
-            return "Coinflip";
-        }
-        protected override string GetDescription()
-        {
-            return "50/50 odds of changing your luck and bullet speed at the end of each round";
-        }
-        protected override GameObject GetCardArt()
-        {
-            return FlairsCards.CardArtCoinflip;
-        }
-        protected override CardInfo.Rarity GetRarity()
-        {
-            return RarityUtils.GetRarity("CommonClass");
-        }
-        protected override CardInfoStat[] GetStats()
-        {
-            return new CardInfoStat[]
+            Title = "Coinflip",
+            Description = "50/50 odds of changing your luck and bullet speed at the end of each round",
+            ModName = FlairsCards.ModInitials,
+            Rarity = RarityUtils.GetRarity("CommonClass"),
+            Theme = CardThemeColor.CardThemeColorType.MagicPink,
+            Art = FlairsCards.CardArtCoinflip,
+            Stats = new[]
             {
                 new CardInfoStat()
                 {
@@ -73,15 +53,54 @@ namespace FlairsCards.Cards
                     amount = "±1",
                     simepleAmount = CardInfoStat.SimpleAmount.Some
                 },
-            };
-        }
-        protected override CardThemeColor.CardThemeColorType GetTheme()
+            }
+        };
+        public override void SetupCard(CardInfo cardInfo, Gun gun, ApplyCardStats cardStats, CharacterStatModifiers statModifiers, Block block)
         {
-            return CardThemeColor.CardThemeColorType.MagicPink;
+            cardInfo.allowMultiple = false;
+            gun.reloadTimeAdd = -0.5f;
+            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been setup.");
         }
-        public override string GetModName()
+    }
+}
+public class CoinflipEffect : CardEffect
+{
+    int luck;
+    public override IEnumerator OnRoundEnd(IGameModeHandler gameModeHandler)
+    {
+        // Sync the random number across clients
+        DoFlipHandler handler = player.gameObject.GetOrAddComponent<DoFlipHandler>();
+        PhotonView view = player.GetComponent<PhotonView>();
+        view.RPC("RPCA_DoFlip", RpcTarget.All, player, luck);
+
+        if (luck == 0)
         {
-            return FlairsCards.ModInitials;
+            player.data.stats.GetAdditionalData().luck += 1;
+            gun.projectileSpeed += 0.25f;
+        }
+        else
+        {
+            player.data.stats.GetAdditionalData().luck -= 1;
+            gun.projectileSpeed -= 0.25f;
+        }
+
+        yield break;
+    }
+
+
+}
+public class DoFlipHandler : MonoBehaviourPun
+{
+    [PunRPC]
+    public void RPCA_DoFlip(Player player, int randNum)
+    {
+        if (player.data.stats.GetAdditionalData().curseAverse == true)
+        {
+            randNum = 0;
+        }
+        else
+        {
+            randNum = UnityEngine.Random.Range(0, 2);
         }
     }
 }

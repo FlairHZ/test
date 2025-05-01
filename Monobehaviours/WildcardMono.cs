@@ -18,7 +18,7 @@ namespace FlairsCards.MonoBehaviours
         private Gravity gravity;
         private Block block;
         private CharacterStatModifiers characterStats;
-        private CardInfo? previousCard = null;  // Field to track the previous card
+        private CardInfo previousCard = null;  // Field to track the previous card
         int chance;
 
         private void Start()
