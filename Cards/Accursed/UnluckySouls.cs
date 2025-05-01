@@ -2,6 +2,7 @@
 using FC.Extensions;
 using FlairsCards.MonoBehaviours;
 using FlairsCards.Utilities;
+using Photon.Pun;
 using RarityLib.Utils;
 using UnboundLib;
 using UnboundLib.Cards;
@@ -23,13 +24,10 @@ namespace FlairsCards.Cards
         }
         public override void OnAddCard(Player player, Gun gun, GunAmmo gunAmmo, CharacterData data, HealthHandler health, Gravity gravity, Block block, CharacterStatModifiers characterStats)
         {
-            for (int i = 0; i <= 1; i++)
-            {
-                var randomPlayer = UnityEngine.Random.Range(0, PlayerManager.instance.players.Count);
-                var chosenPlayer = PlayerManager.instance.players[randomPlayer];
-                chosenPlayer.data.stats.GetAdditionalData().curses += 1;
-                CurseManager.instance.CursePlayer(chosenPlayer, (curse) => { ModdingUtils.Utils.CardBarUtils.instance.ShowImmediate(chosenPlayer, curse); });
-            }
+            // Unsure if I need a RPC for this, but rather safe than sorry
+            CurseRPCHandler handler = player.gameObject.GetOrAddComponent<CurseRPCHandler>();
+            PhotonView view = player.GetComponent<PhotonView>();
+            view.RPC("RPCA_DrawRandomCurses", RpcTarget.All);
 
             FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been added to player {player.playerID}.");
         }
@@ -67,4 +65,19 @@ namespace FlairsCards.Cards
             return FlairsCards.ModInitials;
         }
     }
+    public class CurseRPCHandler : MonoBehaviourPun
+    {
+        [PunRPC]
+        public void RPCA_DrawRandomCurses()
+        {
+            for (int i = 0; i <= 1; i++)
+            {
+                var randomPlayer = UnityEngine.Random.Range(0, PlayerManager.instance.players.Count);
+                var chosenPlayer = PlayerManager.instance.players[randomPlayer];
+                chosenPlayer.data.stats.GetAdditionalData().curses += 1;
+                CurseManager.instance.CursePlayer(chosenPlayer, (curse) => { ModdingUtils.Utils.CardBarUtils.instance.ShowImmediate(chosenPlayer, curse); });
+            }
+        }
+    }
 }
+

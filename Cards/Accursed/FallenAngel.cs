@@ -2,56 +2,35 @@
 using FC.Extensions;
 using FlairsCards.MonoBehaviours;
 using FlairsCards.Utilities;
+using ModsPlus;
 using RarityLib.Utils;
 using UnboundLib;
 using UnboundLib.Cards;
+using UnboundLib.GameModes;
 using UnityEngine;
+using System.Collections;
+using WillsWackyManagers.Utils;
+using System.Dynamic;
 
 namespace FlairsCards.Cards
 {
-    class FallenAngel : CustomCard
+    class FallenAngel : CustomEffectCard<CursedRevive>
     {
         internal static CardInfo Card = null;
         public override void Callback()
         {
             gameObject.GetOrAddComponent<ClassNameMono>().className = AccursedClass.name;
         }
-        public override void SetupCard(CardInfo cardInfo, Gun gun, ApplyCardStats cardStats, CharacterStatModifiers statModifiers, Block block)
+        public override CardDetails Details => new CardDetails
         {
-            cardInfo.allowMultiple = false;
-            statModifiers.health = 0.85f;
-            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been setup.");
-        }
-        public override void OnAddCard(Player player, Gun gun, GunAmmo gunAmmo, CharacterData data, HealthHandler health, Gravity gravity, Block block, CharacterStatModifiers characterStats)
-        {
-            player.gameObject.GetOrAddComponent<FallenAngelMono>();
-            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been added to player {player.playerID}.");
-        }
-        public override void OnRemoveCard(Player player, Gun gun, GunAmmo gunAmmo, CharacterData data, HealthHandler health, Gravity gravity, Block block, CharacterStatModifiers characterStats)
-        {
-            Destroy(player.gameObject.GetOrAddComponent<FallenAngelMono>());
-            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been removed to player {player.playerID}.");
-        }
-        protected override string GetTitle()
-        {
-            return "Fallen Angel";
-        }
-        protected override string GetDescription()
-        {
-            return "Gain a revive for every 4 curses you have";
-        }
-        protected override GameObject GetCardArt()
-        {
-            return FlairsCards.CardArtFallenAngel;
-        }
-        protected override CardInfo.Rarity GetRarity()
-        {
-            return RarityUtils.GetRarity("CommonClass");
-        }
-        protected override CardInfoStat[] GetStats()
-        {
-            return new CardInfoStat[]
-            {
+            Title = "Fallen Angel",
+            Description = "Gain a revive for every 4 curses you have",
+            ModName = FlairsCards.ModInitials,
+            Rarity = RarityUtils.GetRarity("CommonClass"),
+            Theme = CardThemeColor.CardThemeColorType.DestructiveRed,
+            Art = FlairsCards.CardArtFallenAngel,
+            Stats = new[]
+                {
                 new CardInfoStat()
                 {
                     positive = false,
@@ -59,15 +38,23 @@ namespace FlairsCards.Cards
                     amount = "-15%",
                     simepleAmount = CardInfoStat.SimpleAmount.lower
                 },
-            };
-        }
-        protected override CardThemeColor.CardThemeColorType GetTheme()
+            }
+        };
+        public override void SetupCard(CardInfo cardInfo, Gun gun, ApplyCardStats cardStats, CharacterStatModifiers statModifiers, Block block)
         {
-            return CardThemeColor.CardThemeColorType.DestructiveRed;
+            cardInfo.allowMultiple = false;
+            statModifiers.health = 0.85f;
+            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been setup.");
         }
-        public override string GetModName()
+    }
+
+    public class CursedRevive : CardEffect
+    {
+        public override IEnumerator OnPlayerPickEnd(IGameModeHandler gameModeHandler)
         {
-            return FlairsCards.ModInitials;
+            player.data.stats.respawns = (int)(player.data.stats.GetAdditionalData().curses / 4);
+
+            yield break;
         }
     }
 }

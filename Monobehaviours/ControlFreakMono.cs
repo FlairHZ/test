@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Linq;
+using System.Threading;
 using UnboundLib.GameModes;
 using UnityEngine;
 
@@ -10,6 +11,8 @@ namespace FlairsCards.MonoBehaviours
     {
         private Player player;
         private Block block;
+        private float timer = 0.0f;
+        private float waitTime = 0.05f;
 
         private void Start()
         {
@@ -38,9 +41,13 @@ namespace FlairsCards.MonoBehaviours
         }
         void Update()
         {
-            if (!block.IsOnCD())
+            timer += Time.deltaTime;
+            if (timer > waitTime)
             {
-                block.RPCA_DoBlock(true);
+                if (!block.IsOnCD())
+                {
+                    block.RPCA_DoBlock(true);
+                }
             }
         }
     }

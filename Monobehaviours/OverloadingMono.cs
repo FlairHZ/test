@@ -2,6 +2,7 @@
 using System;
 using UnboundLib.GameModes;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace FlairsCards.MonoBehaviours
 {
@@ -9,6 +10,8 @@ namespace FlairsCards.MonoBehaviours
     {
         private Player player;
         private Block block;
+        private float timer = 0.0f;
+        private float waitTime = 0.05f;
         private void Start()
         {
             player = gameObject.GetComponentInParent<Player>();
@@ -16,13 +19,12 @@ namespace FlairsCards.MonoBehaviours
         }
         void Update()
         {
-            if (player.data.stats.GetAdditionalData().overCharged)
+            timer += Time.deltaTime;
+            if (timer > waitTime)
             {
-                block.cdMultiplier = 1f;
-            }
-            else
-            {
-                block.cdMultiplier = (float) ((0.625 * player.data.HealthPercentage) + 0.375);
+                if (!player.data.stats.GetAdditionalData().overCharged) {
+                    block.cdMultiplier = (float)((0.625 * player.data.HealthPercentage) + 0.375);
+                }
             }
         }
     }

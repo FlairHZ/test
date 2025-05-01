@@ -17,7 +17,10 @@ namespace FlairsCards.Cards
     class CursedDraw : CustomEffectCard<DrawCurse>
     {
         internal static CardInfo Card = null;
-
+        public override void Callback()
+        {
+            gameObject.GetOrAddComponent<ClassNameMono>().className = AccursedClass.name;
+        }
         public override CardDetails Details => new CardDetails
         {
             Title = "Cursed Draw",

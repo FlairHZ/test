@@ -9,7 +9,6 @@ using WillsWackyManagers.Utils;
 
 namespace FlairsCards.Cards
 {
-    //
     class Accursed : CustomCard
     {
         internal static CardInfo Card = null;

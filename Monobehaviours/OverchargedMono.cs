@@ -9,6 +9,8 @@ namespace FlairsCards.MonoBehaviours
     {
         private Player player;
         private Block block;
+        private float timer = 0.0f;
+        private float waitTime = 0.05f;
         private void Start()
         {
             player = gameObject.GetComponentInParent<Player>();
@@ -16,8 +18,12 @@ namespace FlairsCards.MonoBehaviours
         }
         void Update()
         {
-            block.cdMultiplier = (float)((0.9375 * player.data.HealthPercentage) + 0.0625);
-            player.data.stats.GetAdditionalData().overCharged = true; // Blanket solution, make it actually better later
+            timer += Time.deltaTime;
+            if (timer > waitTime)
+            {
+                block.cdMultiplier = (float)((0.9375 * player.data.HealthPercentage) + 0.0625);
+                player.data.stats.GetAdditionalData().overCharged = true; // Blanket solution, make it actually better later
+            }
         }
     }
 }
