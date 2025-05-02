@@ -26,8 +26,15 @@ namespace FlairsCards.Cards
         {
             // Unsure if I need a RPC for this, but rather safe than sorry
             CurseRPCHandler handler = player.gameObject.GetOrAddComponent<CurseRPCHandler>();
-            PhotonView view = player.GetComponent<PhotonView>();
-            view.RPC("RPCA_DrawRandomCurses", RpcTarget.All);
+
+            if (PhotonNetwork.IsMasterClient)
+            {
+                int playerOne = UnityEngine.Random.Range(0, PlayerManager.instance.players.Count);
+                int playerTwo = UnityEngine.Random.Range(0, PlayerManager.instance.players.Count);
+
+                PhotonView view = handler.GetComponent<PhotonView>();
+                view.RPC("RPCA_DrawRandomCurses", RpcTarget.All, playerOne, playerTwo);
+            }
 
             FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been added to player {player.playerID}.");
         }
@@ -68,15 +75,14 @@ namespace FlairsCards.Cards
     public class CurseRPCHandler : MonoBehaviourPun
     {
         [PunRPC]
-        public void RPCA_DrawRandomCurses()
+        public void RPCA_DrawRandomCurses(int playerOne, int playerTwo)
         {
-            for (int i = 0; i <= 1; i++)
-            {
-                var randomPlayer = UnityEngine.Random.Range(0, PlayerManager.instance.players.Count);
-                var chosenPlayer = PlayerManager.instance.players[randomPlayer];
-                chosenPlayer.data.stats.GetAdditionalData().curses += 1;
-                CurseManager.instance.CursePlayer(chosenPlayer, (curse) => { ModdingUtils.Utils.CardBarUtils.instance.ShowImmediate(chosenPlayer, curse); });
-            }
+            var chosenPlayer = PlayerManager.instance.players[playerOne];
+            chosenPlayer.data.stats.GetAdditionalData().curses += 1;
+            CurseManager.instance.CursePlayer(chosenPlayer, (curse) => { ModdingUtils.Utils.CardBarUtils.instance.ShowImmediate(chosenPlayer, curse); });
+            chosenPlayer = PlayerManager.instance.players[playerTwo];
+            chosenPlayer.data.stats.GetAdditionalData().curses += 1;
+            CurseManager.instance.CursePlayer(chosenPlayer, (curse) => { ModdingUtils.Utils.CardBarUtils.instance.ShowImmediate(chosenPlayer, curse); });
         }
     }
 }

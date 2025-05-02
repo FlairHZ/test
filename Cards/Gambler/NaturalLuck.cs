@@ -1,58 +1,33 @@
 ﻿using ClassesManagerReborn.Util;
 using FC.Extensions;
-using FlairsCards.MonoBehaviours;
 using FlairsCards.Utilities;
+using ModdingUtils.AIMinion.Extensions;
+using ModsPlus;
+using Photon.Pun;
 using RarityLib.Utils;
+using System.Collections;
 using UnboundLib;
-using UnboundLib.Cards;
+using UnboundLib.GameModes;
 using UnityEngine;
 
 namespace FlairsCards.Cards
 {
-    class NaturalLuck : CustomCard
+    public class NaturalLuck : CustomEffectCard<NaturalLuckEffect>
     {
         internal static CardInfo Card = null;
-
         public override void Callback()
         {
             gameObject.GetOrAddComponent<ClassNameMono>().className = GamblerClass.name;
         }
-        public override void SetupCard(CardInfo cardInfo, Gun gun, ApplyCardStats cardStats, CharacterStatModifiers statModifiers, Block block)
+        public override CardDetails Details => new CardDetails
         {
-            cardInfo.allowMultiple = false;
-            gun.damage = 1.25f;
-            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been setup.");
-        }
-        public override void OnAddCard(Player player, Gun gun, GunAmmo gunAmmo, CharacterData data, HealthHandler health, Gravity gravity, Block block, CharacterStatModifiers characterStats)
-        {
-            player.data.stats.GetAdditionalData().luck += 1;
-            player.gameObject.GetOrAddComponent<NaturalLuckMono>();
-            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been added to player {player.playerID}.");
-        }
-        public override void OnRemoveCard(Player player, Gun gun, GunAmmo gunAmmo, CharacterData data, HealthHandler health, Gravity gravity, Block block, CharacterStatModifiers characterStats)
-        {
-            Destroy(player.gameObject.GetOrAddComponent<NaturalLuckMono>());
-            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been removed to player {player.playerID}.");
-        }
-        protected override string GetTitle()
-        {
-            return "Natural Luck";
-        }
-        protected override string GetDescription()
-        {
-            return "Gain or lose a random amount of luck each round, gain 1 luck now";
-        }
-        protected override GameObject GetCardArt()
-        {
-            return FlairsCards.CardArtNaturalLuck;
-        }
-        protected override CardInfo.Rarity GetRarity()
-        {
-            return RarityUtils.GetRarity("CommonClass");
-        }
-        protected override CardInfoStat[] GetStats()
-        {
-            return new CardInfoStat[]
+            Title = "Natural Luck",
+            Description = "Gain or lose a random amount of luck each round, gain 1 luck now",
+            ModName = FlairsCards.ModInitials,
+            Rarity = RarityUtils.GetRarity("CommonClass"),
+            Theme = CardThemeColor.CardThemeColorType.MagicPink,
+            Art = FlairsCards.CardArtNaturalLuck,
+            Stats = new[]
             {
                 new CardInfoStat()
                 {
@@ -67,16 +42,51 @@ namespace FlairsCards.Cards
                     stat = "Luck",
                     amount = "+1",
                     simepleAmount = CardInfoStat.SimpleAmount.aLittleBitOf
-                }
-            };   
-        }
-        protected override CardThemeColor.CardThemeColorType GetTheme()
+                },
+            }
+        };
+        public override void SetupCard(CardInfo cardInfo, Gun gun, ApplyCardStats cardStats, CharacterStatModifiers statModifiers, Block block)
         {
-            return CardThemeColor.CardThemeColorType.MagicPink;
+            cardInfo.allowMultiple = false;
+            gun.damage = 1.25f;
+            statModifiers.GetAdditionalData().luck += 1;
+            FCDebug.Log($"[{FlairsCards.ModInitials}][Card] {GetTitle()} has been setup.");
         }
-        public override string GetModName()
+    }
+}
+public class NaturalLuckEffect : CardEffect
+{
+    public override IEnumerator OnRoundEnd(IGameModeHandler gameModeHandler)
+    {
+        int randNum = 0;
+
+        if (player.data.stats.GetAdditionalData().curseAverse)
         {
-            return FlairsCards.ModInitials;
+            randNum = UnityEngine.Random.Range(0, 3);
         }
+        else
+        {
+            randNum = UnityEngine.Random.Range(-2, 3);
+        }
+        int photonViewId = player.GetComponent<PhotonView>().ViewID;
+
+        player.gameObject.GetOrAddComponent<NaturalLuckHandler>();
+        PhotonView.Get(player).RPC("RPCA_ApplyNaturalLuck", RpcTarget.All, photonViewId, randNum);
+
+        yield break;
+    }
+}
+public class NaturalLuckHandler : MonoBehaviourPun
+{
+    [PunRPC]
+    public void RPCA_ApplyNaturalLuck(int viewId, int randNum)
+    {
+        PhotonView view = PhotonView.Find(viewId);
+        if (view == null) return;
+
+        Player player = view.GetComponent<Player>();
+        if (player == null) return;
+
+        player.data.stats.GetAdditionalData().luck += randNum;
     }
 }

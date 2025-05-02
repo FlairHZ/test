@@ -65,15 +65,36 @@ namespace FlairsCards.Cards
 }
 public class CoinflipEffect : CardEffect
 {
-    int luck;
     public override IEnumerator OnRoundEnd(IGameModeHandler gameModeHandler)
     {
-        // Sync the random number across clients
-        DoFlipHandler handler = player.gameObject.GetOrAddComponent<DoFlipHandler>();
-        PhotonView view = player.GetComponent<PhotonView>();
-        view.RPC("RPCA_DoFlip", RpcTarget.All, player, luck);
+        int randNum = UnityEngine.Random.Range(0, 2);
+        int photonViewId = player.GetComponent<PhotonView>().ViewID;
 
-        if (luck == 0)
+        player.gameObject.GetOrAddComponent<DoFlipHandler>();
+        PhotonView.Get(player).RPC("RPCA_DoFlip", RpcTarget.All, photonViewId, randNum);
+
+        yield break;
+    }
+}
+public class DoFlipHandler : MonoBehaviourPun
+{
+    [PunRPC]
+    public void RPCA_DoFlip(int viewId, int randNum)
+    {
+        PhotonView view = PhotonView.Find(viewId);
+        if (view == null) return;
+
+        Player player = view.GetComponent<Player>();
+        if (player == null) return;
+
+        Gun gun = player.data.weaponHandler.gun;
+
+        if (player.data.stats.GetAdditionalData().curseAverse == true)
+        {
+            randNum = 0;
+        }
+
+        if (randNum == 0)
         {
             player.data.stats.GetAdditionalData().luck += 1;
             gun.projectileSpeed += 0.25f;
@@ -82,25 +103,6 @@ public class CoinflipEffect : CardEffect
         {
             player.data.stats.GetAdditionalData().luck -= 1;
             gun.projectileSpeed -= 0.25f;
-        }
-
-        yield break;
-    }
-
-
-}
-public class DoFlipHandler : MonoBehaviourPun
-{
-    [PunRPC]
-    public void RPCA_DoFlip(Player player, int randNum)
-    {
-        if (player.data.stats.GetAdditionalData().curseAverse == true)
-        {
-            randNum = 0;
-        }
-        else
-        {
-            randNum = UnityEngine.Random.Range(0, 2);
         }
     }
 }
